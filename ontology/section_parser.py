@@ -1,13 +1,18 @@
 import cv2 as cv
 import numpy as np 
- 
-from skimage.metrics import structural_similarity
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 import pytesseract
 
 import sys
 from time import time
+from pdb import set_trace
 sys.path.append("..")
-from constants import ROOT_DIR , TESSACT_PATH
+from constants import PUNCTUATION, ROOT_DIR , TESSACT_PATH
+
+from nltk.tokenize import word_tokenize
+from preprocessing.nlp import part_of_speech_tagging , preprocessing 
 
 
 def showImage(img, tags=""):
@@ -59,9 +64,9 @@ def layout_cutting(image,  vertical_ratio=(1,1,3), show=False):
 
     return cutted_layout_img
 
+
 def extract_text_from_image(image, 
         threshold_filter=False, 
-        numeric=False,
         tesseract_cmd_path = TESSACT_PATH, 
         debug=False):
     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd_path
@@ -69,41 +74,36 @@ def extract_text_from_image(image,
     if threshold_filter: image = cv.threshold(image, 0, 255,  cv.THRESH_BINARY | cv.THRESH_OTSU)[1]
     if debug: showImage(image, "threshold" if threshold_filter else "origin")
     
-    text = pytesseract.image_to_data(image, lang='eng').split()
-    taged_text = text.split()
+    st = time()
+    text = pytesseract.image_to_data(image, lang='eng').strip().lower()
+    image_to_text_time = (time() - st ) * 1000
     
-    text_numeric = list(filter(lambda x: x.isdigit() and int(x) != 0 )) if numeric else []
-    text_alpha = list(filter(lambda x: x.isalpha(), taged_text ))
+    tokens = word_tokenize(text)
+    tokenizes_time = (time() - image_to_text_time ) * 1000
+
+    tokens = preprocessing(tokens)
+    preprocessing_time = (time() - tokenizes_time) * 1000
+    set_trace()
+
+    pos = part_of_speech_tagging(text)
+    pos_time = (time() - preprocessing_time ) * 1000
+    if debug: 
+        print(
+            f"ocr_time taken {image_to_text_time} ms "
+            f" tokenization {tokenizes_time} ms"
+            f" preprocessing_time : {preprocessing_time}ms "
+            f"part of speech tagging {pos_time}ms")
+    return tokens , pos
     
-    term_frequencies = text_alpha + text_numeric
-    
-    
-
-
-
-
 
 if __name__ == "__main__":
     img1 = cv.imread(f"{ROOT_DIR}/../sd02/data/sfrs_0/r0000/r0000_00.png")
     img2 = cv.imread(f"{ROOT_DIR}/../sd02/data/sfrs_0/r0000/r0000_01.png")
     
-
-    # orb_feature_matcher(img1, img2, True)
-
-    img1 = cv.cvtColor(img1, cv.COLOR_BGR2GRAY)
-    img2 = cv.cvtColor(img2, cv.COLOR_BGR2GRAY)
-
-    score , diff  = structural_similarity( img1 , img2,  full=True)
-    
-    cutted_layout_img1 = layout_cutting(img1,)
-    cutted_layout_img2 = layout_cutting(img2,)
-    
-
-    threshold_img1 =cv.threshold(img1, 0, 255,  cv.THRESH_BINARY | cv.THRESH_OTSU)[1]
-    details = pytesseract.image_to_data(threshold_img1, lang='eng')
+    tokens , pos = extract_text_from_image(img1)
     
 
 
-    for i1, i2 in zip(cutted_layout_img1, cutted_layout_img2):
-        score , diff = structural_similarity( i1, i2, full=True)
-        print(score)
+    # for i1, i2 in zip(cutted_layout_img1, cutted_layout_img2):
+    #     score , diff = structural_similarity( i1, i2, full=True)
+    #     print(score)

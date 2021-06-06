@@ -11,7 +11,3 @@
 ![tax_form_1998_1040](./figures/sd2.jpg)
 
 - figure screen shot of 1040 form in 1988
-
-## Traditional Approach results 
-
-1. 
