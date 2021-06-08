@@ -1,9 +1,11 @@
+from collections import defaultdict
 import cv2 as cv
 import numpy as np 
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 import pytesseract
+from incorme_tax_1988 import generate_dataset
 
 import sys
 from time import time
@@ -65,44 +67,56 @@ def layout_cutting(image,  vertical_ratio=(1,1,3), show=False):
     return cutted_layout_img
 
 
-def extract_text_from_image(image, 
+def extract_text_pos_from_image(image, 
         threshold_filter=False, 
         tesseract_cmd_path = TESSACT_PATH, 
-        debug=False):
+        debug=True):
     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd_path
     
     if threshold_filter: image = cv.threshold(image, 0, 255,  cv.THRESH_BINARY | cv.THRESH_OTSU)[1]
-    if debug: showImage(image, "threshold" if threshold_filter else "origin")
+    if debug and threshold_filter : showImage(image, "threshold" if threshold_filter else "origin")
     
     st = time()
     text = pytesseract.image_to_data(image, lang='eng').strip().lower()
-    image_to_text_time = (time() - st ) * 1000
+    image_to_text_time = time() - st 
     
     tokens = word_tokenize(text)
-    tokenizes_time = (time() - image_to_text_time ) * 1000
+    tokenizes_time = time() - image_to_text_time 
 
     tokens = preprocessing(tokens)
-    preprocessing_time = (time() - tokenizes_time) * 1000
-    set_trace()
+    preprocessing_time = time() - tokenizes_time
 
     pos = part_of_speech_tagging(text)
-    pos_time = (time() - preprocessing_time ) * 1000
+    pos_time = time() - preprocessing_time 
     if debug: 
         print(
-            f"ocr_time taken {image_to_text_time} ms "
-            f" tokenization {tokenizes_time} ms"
-            f" preprocessing_time : {preprocessing_time}ms "
-            f"part of speech tagging {pos_time}ms")
+            f"ocr_time taken {image_to_text_time * 1000} ms "
+            f" tokenization {tokenizes_time * 1000} ms"
+            f" preprocessing_time : {preprocessing_time * 1000}ms "
+            f"part of speech tagging {pos_time * 1000}ms")
     return tokens , pos
-    
+
+def term_frequency_vectorizer():
+    vectorizer = TfidfVectorizer()
+    return vectorizer
+
 
 if __name__ == "__main__":
     img1 = cv.imread(f"{ROOT_DIR}/../sd02/data/sfrs_0/r0000/r0000_00.png")
     img2 = cv.imread(f"{ROOT_DIR}/../sd02/data/sfrs_0/r0000/r0000_01.png")
     
-    tokens , pos = extract_text_from_image(img1)
-    
+    text , pos = extract_text_pos_from_image(img1)
+    vectorizer = term_frequency_vectorizer()
+    df = generate_dataset()
 
+    dataframe = defaultdict(lambda : [])
+
+    for img in tqdm(df.image):
+        text, pos = extract_text_pos_from_image(img)
+        tfidf = vectorizer.fit_transform(text)
+        dataframe['tfidf'].append( tfidf )
+        dataframe['part_of_speech_tagging'].append( pos )
+    
 
     # for i1, i2 in zip(cutted_layout_img1, cutted_layout_img2):
     #     score , diff = structural_similarity( i1, i2, full=True)
