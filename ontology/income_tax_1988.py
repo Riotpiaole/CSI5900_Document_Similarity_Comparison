@@ -13,13 +13,13 @@ def preprocessing_income_tax_return_1988(path):
     dataset = {
         'fmt': [],
         'image': [],
+        'page_num': []
     }
 
     for folder in tqdm(paths):
         current_folder = join(abspath(path), folder)
         for return_form in listdir(current_folder):
             current_document = listdir(join(current_folder, return_form ))
-            set_trace()
             filled_content = [ 
                 join(
                     join(current_folder, return_form), fi) 
@@ -29,7 +29,7 @@ def preprocessing_income_tax_return_1988(path):
                         join(current_folder, return_form), fi)
                 for fi in current_document if fi.endswith("png") ]
             file_type = [ 
-                re.sub(".png","",fi.split("_")[-1]) for fi in current_document if fi.endswith("png")
+                int(re.sub(".png","",fi.split("_")[-1])) for fi in current_document if fi.endswith("png")
             ]
             dataset['fmt'] += filled_content
             dataset['image'] += filled_image
@@ -58,7 +58,8 @@ def generate_dataset(path="../sd02/data",read_img=False):
             dataframe['image_gray'].append(read_img_gray(img))
         else:
             dataframe['image'].append(img)
-        
+            dataframe['fmt'].append(fmt)
+    dataframe['label'] = dataset['page_num']
     return pd.DataFrame(dataframe)
 
 if __name__ == "__main__":
@@ -66,5 +67,5 @@ if __name__ == "__main__":
     # test_fmt = read_fmt(dataset['fmt'][0])
     # test_img =read_img_gray(dataset['image'][0])
     df = generate_dataset() 
-    for img in df.image:
-        print(img)
+
+    
