@@ -1,5 +1,4 @@
-from os import closerange
-from pdb import set_trace
+
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import train_test_split
@@ -13,13 +12,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import pytesseract
 from income_tax_1988 import generate_dataset
 from multiprocessing import Process , Manager
-from multiprocessing.managers import BaseManager, DictProxy
 import pickle 
 
 import sys
 from time import strftime, time , gmtime
 sys.path.append("..")
-from constants import PUNCTUATION, ROOT_DIR , TESSACT_PATH , WORDS
+from constants import TESSACT_PATH 
 
 from preprocessing.nlp import part_of_speech_tagging , preprocessing 
 pytesseract.pytesseract.tesseract_cmd = TESSACT_PATH
@@ -166,11 +164,10 @@ def job_splitting(jobs, n_jobs=5):
         pickle.dump(outs,  fio)
     return  outs 
 
-def default_array():
-    return []
+
 
 def unpack_proxy_result(outs):
-    unpacked_result = defaultdict(default_array)
+    unpacked_result = defaultdict(list)
     for val in outs:
         for k , v in val.items():
             unpacked_result[k] += list(v)
@@ -185,9 +182,7 @@ def try_join(l):
 if __name__ == "__main__":
     df = generate_dataset()
     outs = job_splitting(df.image)
-    docs_idfs = [ TfidfVectorizer(min_df=1, max_df= .95) for i in df.label.unique()] 
 
-    X=  defaultdict(default_array)
     res = pd.DataFrame({ 
         'image_path': df.image,
         'tokenized_text': list(map(try_join, outs['tokens'])),

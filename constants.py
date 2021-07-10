@@ -10,3 +10,7 @@ try:
 except LookupError:
     nltk.download('words')
     WORDS = set(nltk.corpus.words.words())
+
+
+def default_array():
+    return []
