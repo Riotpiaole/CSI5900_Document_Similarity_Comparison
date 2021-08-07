@@ -1,16 +1,13 @@
-from os.path import dirname ,abspath
-import string
 import nltk
+import string
 
-ROOT_DIR = abspath(".")
+PUNCTUATION = [ punc for punc in string.punctuation]
 TESSACT_PATH="D:\\tesseract-ocr\\tesseract"
-PUNCTUATION = string.punctuation
 try:
     WORDS = set(nltk.corpus.words.words())
 except LookupError:
     nltk.download('words')
     WORDS = set(nltk.corpus.words.words())
 
-
-def default_array():
-    return []
+from nltk.corpus import stopwords
+STOPWORDS= stopwords.words('english')

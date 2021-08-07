@@ -1,9 +1,5 @@
 from __future__ import absolute_import
 
-from .compare import (
-    distance,
-    simple_distance,
-)
 from .distance import AnnotatedTree, Operation
 from .tree import Node
 

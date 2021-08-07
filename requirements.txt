@@ -2,3 +2,4 @@ pytorch
 skimage
 pytesseract
 textblob
+layoutparser

@@ -1,6 +1,4 @@
 import pandas as pd
-from tfidf_classifier import job_splitting
-from income_tax_1988 import generate_dataset
 import numpy as np
 from nltk.tokenize import word_tokenize
 from pdb import set_trace
@@ -75,11 +73,11 @@ def default_array():
 if __name__ == "__main__":
     df = generate_dataset()
     n = 100
-    outs = job_splitting(df.image)
+    outs = multi_processing_text_ocr(df.image)
     res_df = pd.DataFrame({ 
         'image_path': df.image,
         'tokenized_text': outs['tokens'],
         'label': df.label
     })
-    random_test_entries = res_df.sample(n=n, replace=True,random_state=42)
-    jaccard_score_over_entire_population(random_test_entries,res_df)
+    # random_test_entries = res_df.sample(n=n, replace=True,random_state=42)
+    # jaccard_score_over_entire_population(random_test_entries,res_df)

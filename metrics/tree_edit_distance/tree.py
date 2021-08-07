@@ -69,5 +69,5 @@ class Node(object):
         s = '\n'.join([s]+[str(c) for c in self.children])
         return s
 
-    def __sub__(self, other):
-        return zss.simple_distance(self, other)
+    # def __sub__(self, other):
+    #     return zss.simple_distance(self, other)
